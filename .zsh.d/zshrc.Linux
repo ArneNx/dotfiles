@@ -1,0 +1,8 @@
+
+HOSTNAME=`hostname`
+if  [ ${HOSTNAME[0,7]} = zalando ]; then
+    prompt patrick red
+fi
+
+
+alias ls='ls -F --color'

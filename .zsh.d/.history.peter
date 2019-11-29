@@ -1,0 +1,18 @@
+2010-12-29.15-04-09 mv prompt_jtp_setup prompt_jtp_test_setup
+2010-12-29.15-04-20 mv prompt_jtp_setup.org prompt_jtp_setup
+2010-12-29.15-26-05 git status
+2010-12-29.15-26-14 git add prompt_jtp_test_setup
+2010-12-29.15-26-18 git ca
+2010-12-29.15-27-34 gvim prompt_jtp_setup
+2010-12-29.15-30-42 git ca
+2011-01-04.14-46-33 gvim zshrc.Linux
+2013-03-11.22-33-20 grep localHistory *
+2013-03-11.22-33-30 grep localHistory **/*
+2013-04-09.13-43-24 mv prompt_jtp_simple_setup prompt_jtpsimple_setup
+2013-04-09.13-43-54 xxdiff *jtp*
+2013-04-09.13-52-27 rm prompt_jtpsimple_setup prompt_jtpbackup_setup 
+2013-04-09.13-52-28 ;s
+2014-07-16.20-52-37 cat prompt_jtp_setup
+2014-07-16.20-53-07 git branch 2>/dev/null | grep -e '^*' | sed -E 's/^\* (.+)$/(\1)/'
+2014-07-16.21-03-04 grep git prompt_jtp_setup
+2014-07-16.21-03-24 git status

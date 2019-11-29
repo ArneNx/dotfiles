@@ -1,0 +1,274 @@
+# jtp prompt theme
+
+prompt_jtp_help () {
+  cat <<'EOF'
+This prompt is color-scheme-able.  You can invoke it thus:
+
+  prompt jtp [ 8bit ] [<color1> [<color2> [<color3>] [<color4>]]
+
+where the colors are for the hyphens, current directory, user@host,
+and user input bits respectively.  The default colors are cyan, green,
+cyan, and white.  This theme works best with a dark background.
+
+If you have the `nexus' or `vga' console fonts or similar, you
+can specify the `8bit' option to use 8-bit replacements for the
+7-bit characters.
+
+And you probably thought adam1 was overkill ...
+EOF
+}
+
+prompt_jtp_setup () {
+  # Some can't be local
+  local prompt_gfx_tlc prompt_gfx_mlc prompt_gfx_blc
+
+  #if [[ $1 == '8bit' ]]; then
+  #  shift
+  #  prompt_gfx_tlc=$'\xda'
+  #  prompt_gfx_mlc=$'\xc3'
+  #  prompt_gfx_blc=$'\xc0'
+  #  prompt_gfx_hyphen=$'\xc4'
+  if [[ $1 == 'simple' ]]; then
+    shift
+    prompt_gfx_tlc=$','
+    prompt_gfx_mlc=$'|'
+    prompt_gfx_blc=$'\\`'
+    prompt_gfx_hyphen=$'-'
+    prompt_char="%(!.#.>)"
+  else
+    prompt_gfx_tlc='╭'
+    prompt_gfx_mlc='|'
+    prompt_gfx_blc='╰'
+    prompt_gfx_hyphen='─'
+    prompt_char="%(!.#.➤)"
+  fi
+
+  use_git=${1:-'git'}     # hyphens
+
+  # Used for ditry hack
+  is_mac=(`uname -s` = 'Darwin')
+
+  # Colour scheme
+  prompt_jtp_color1=${2:-'green'}     # hyphens
+  prompt_jtp_color2=${3:-'cyan'}    # current directory
+  prompt_jtp_color3=${4:-'blue'}     # user@host
+  prompt_jtp_color4=${5:-'white'}    # user input
+  prompt_jtp_color5=${6:-'yellow'}     # date
+  prompt_jtp_color6=${7:-'yellow'}   # git info color
+  prompt_jtp_color7=${8:-'red'}   # smt info color
+
+  local prompt_gfx_bbox 
+  #prompt_gfx_tbox="%{$fg_bold[$prompt_jtp_color1]%}${prompt_gfx_tlc}%{$fg_no_bold[$prompt_jtp_color1]%}${prompt_gfx_hyphen}"
+  #prompt_gfx_bbox="%{$fg_bold[$prompt_jtp_color1]%}${prompt_gfx_blc}${prompt_gfx_hyphen}%{$fg_no_bold[$prompt_jtp_color1]%}"
+  prompt_gfx_tbox="%{$fg_no_bold[$prompt_jtp_color1]%}${prompt_gfx_tlc}%{$fg_no_bold[$prompt_jtp_color1]%}${prompt_gfx_hyphen}"
+  prompt_gfx_bbox="%{$fg_no_bold[$prompt_jtp_color1]%}${prompt_gfx_blc}${prompt_gfx_hyphen}%{$fg_no_bold[$prompt_jtp_color1]%}"
+
+  # This is a cute hack.  Well I like it, anyway.
+  prompt_gfx_bbox_to_mbox=$'%{\e[A\r'"$fg_bold[$prompt_jtp_color1]${prompt_gfx_mlc}$fg_no_bold[$prompt_jtp_color1]${prompt_gfx_hyphen}"$'\e[B%}'
+
+  prompt_l_paren="%{$fg_bold[white]%}("
+  prompt_r_paren="%{$fg_bold[white]%})"
+
+  prompt_user_host="%{$fg_no_bold[$prompt_jtp_color3]%}%n%{$fg_bold[$prompt_jtp_color3]%}@%{$fg_no_bold[$prompt_jtp_color3]%}%m"
+  prompt_date="%{$fg_no_bold[$prompt_jtp_color5]%}%D{%F %H-%M-%S}"
+
+  prompt_line_1a="$git$prompt_gfx_tbox$prompt_l_paren%{$fg_bold[$prompt_jtp_color2]%}%~$prompt_r_paren%{$fg_no_bold[$prompt_jtp_color1]%}"
+  prompt_line_1b="$prompt_l_paren$prompt_date$prompt_r_paren$prompt_l_paren$prompt_user_host$prompt_r_paren%{$fg_no_bold[$prompt_jtp_color1]%}${prompt_gfx_hyphen}"
+
+  prompt_line_2="$prompt_gfx_bbox${prompt_gfx_hyphen}%{$fg_bold[white]%}"
+  prompt_line_2="$prompt_gfx_bbox%{$fg_bold[white]%}"
+
+
+
+  local return_code="%(?..%{$fg[red]%}%? ↵%{$reset_color%})"
+  RPS1="${return_code}"
+
+
+  precmd () { prompt_jtp_precmd; setopt promptsubst }
+  preexec () { myLocalHistory $1; prompt_jtp_preexec }
+  
+}
+
+
+prompt_jtp_precmd () {
+  setopt noxtrace localoptions extendedglob
+  local prompt_line_1
+
+  prompt_jtp_choose_prompt
+
+  PS1="$prompt_line_1$prompt_newline$prompt_line_2%{$fg_bold[white]%}$prompt_char %{$fg_bold[$prompt_jtp_color4]%}"
+  PS2="$prompt_line_2%{$prompt_gfx_bbox_to_mbox$fg_bold[white]%}%_> %{$fg_bold[$prompt_jtp_color4]%}"
+  PS3="$prompt_line_2%{$prompt_gfx_bbox_to_mbox$fg_bold[white]%}?# %{$fg_bold[$prompt_jtp_color4]%}"
+}
+
+# retrieve git status information 	taken from 
+# http://ciaranm.wordpress.com/2008/07/16/git-and-subversion-information-in-the-bash-prompt/
+_get_git_info() {
+	local s=
+	#local d=$(git rev-parse --git-dir 2>/dev/null ) b= r= a=
+    #
+	local d='.git' b= r= a=
+	if [[ -n "${d}" ]] ; then
+		if [[ -d "${d}/../.dotest" ]] ; then
+			if [[ -f "${d}/../.dotest/rebase" ]] ; then
+				r="rebase"
+			elif [[ -f "${d}/../.dotest/applying" ]] ; then
+				r="am"
+			else
+				r="???"
+			fi
+			b=$(git symbolic-ref HEAD 2>/dev/null )
+		elif [[ -f "${d}/.dotest-merge/interactive" ]] ; then
+			r="rebase-i"
+			b=$(<${d}/.dotest-merge/head-name)
+		elif [[ -d "${d}/../.dotest-merge" ]] ; then
+			r="rebase-m"
+			b=$(<${d}/.dotest-merge/head-name)
+		elif [[ -f "${d}/MERGE_HEAD" ]] ; then
+			r="merge"
+			b=$(git symbolic-ref HEAD 2>/dev/null )
+		elif [[ -f "${d}/BISECT_LOG" ]] ; then
+			r="bisect"
+			b=$(git symbolic-ref HEAD 2>/dev/null )"???"
+		else
+			r=""
+			b=$(git symbolic-ref HEAD 2>/dev/null )
+		fi
+			
+        git_status=`git status 2>/dev/null`
+        if echo $git_status | egrep -q '^Changed but not updated:|^Changes not staged for commit:'; then
+            a="${a}*"
+        fi
+
+        if echo $git_status | grep -q '^Changes to be committed:' ; then
+            a="${a}+"
+        fi
+
+        if echo $git_status | grep -q '^Untracked files:' ; then
+            a="${a}?"
+        fi
+
+			
+		b=${b#refs/heads/}
+		b=${b// }
+		[[ -n "${r}${b}${a}" ]] && s="${r:+${r}:}${b}${a:+ ${a}}"
+	fi
+    s="${s}${ACTIVE_COMPILER}"
+    s="${s:+${s}}"
+    echo -n "$s"
+}
+
+_get_smt2_info() {
+
+    local color_smt
+    
+    smt2=`timeout 1 df -h /work/smt2 | grep -o ' [0-9]*G ' | sed 's/ //g'`
+    
+    number=`echo $smt2 | sed "s/G//g"`
+    
+    if (($number > 500)) ; then
+        color_smt="%{$fg[$prompt_jtp_color1]%}"  
+    elif (($number > 100)) ; then
+        color_smt="%{$fg[$prompt_jtp_color6]%}"  
+    else
+        color_smt="%{$fg[$prompt_jtp_color7]%}"  
+    fi
+
+    command=$color_smt$smt2
+
+    echo -n $command
+}
+
+_get_smt2_info_v2() {
+
+    local color_smt
+    
+    smt2=`timeout 1 df /work/smt2 | tail -n1 | awk '{print $4}'`
+    
+    number=$(($smt2 / 1024 / 1024))
+    
+    if (($number > 500)) ; then
+        color_smt="%{$fg[$prompt_jtp_color1]%}"  
+    elif (($number > 100)) ; then
+        color_smt="%{$fg[$prompt_jtp_color6]%}"  
+    else
+        color_smt="%{$fg[$prompt_jtp_color7]%}"  
+    fi
+    
+    command=$color_smt$number"G"
+
+    echo -n $command
+}
+
+prompt_jtp_choose_prompt () {
+#  local git_branch
+#  git_branch=`git branch 2>/dev/null | grep -e '^*' | sed -E 's/^\* (.+)$/(\1)/'`
+#  git_info="$git_branch"
+
+  local color_git
+  color_git="%{$fg[$prompt_jtp_color6]%}"  
+
+  local color_prompt
+  color_prompt="%{$fg_no_bold[$prompt_jtp_color1]%}"
+
+
+  local _git_info
+  if [[ $use_git = "git" ]]; then
+    _git_info=$(_get_git_info)
+    if [[ $_git_info = "" ]]; then
+      git_info=""
+    else
+      git_info=${prompt_l_paren}${color_git}$(_get_git_info)${prompt_r_paren}${color_prompt}
+    fi
+  else
+    git_info=""
+  fi
+
+  #smt_info=${prompt_l_paren}$(_get_smt2_info_v2)${prompt_r_paren}${color_prompt}
+  smt_info=${color_prompt}
+
+  local prompt_line_1a_width=${#${(S%%)prompt_line_1a//\%\{*\%\}}}
+  local prompt_line_1b_width=${#${(S%%)prompt_line_1b//\%\{*\%\}}}
+  local git_info_width=${#${(S%%)git_info//\%\{*\%\}}}
+  local smt_info_width=${#${(S%%)smt_info//\%\{*\%\}}}
+  
+
+  local prompt_padding_size=$(( COLUMNS
+                                  - prompt_line_1a_width
+                                  - git_info_width
+                                  - smt_info_width
+                                  - prompt_line_1b_width ))
+
+ # if [ $is_mac ]; then
+ #   prompt_padding_size=$(( prompt_padding_size +6 ))
+ # fi  
+
+  # Try to fit in long path and user@host.
+  if (( prompt_padding_size > 0 )); then
+    local prompt_padding
+    eval "prompt_padding=\${(l:${prompt_padding_size}::${prompt_gfx_hyphen}:)_empty_zz}"
+	prompt_line_1="$prompt_line_1a$git_info$prompt_padding$smt_info$prompt_line_1b"    
+    #prompt_line_1="$prompt_line_1a$prompt_padding$prompt_line_1b"
+    return
+  fi
+
+  prompt_padding_size=$(( COLUMNS - prompt_line_1a_width ))
+
+  # Didn't fit; try to fit in just long path.
+  if (( prompt_padding_size > 0 )); then
+    local prompt_padding
+    eval "prompt_padding=\${(l:${prompt_padding_size}::${prompt_gfx_hyphen}:)_empty_zz}"
+    prompt_line_1="$prompt_line_1a$prompt_padding"
+    return
+  fi
+
+  # Still didn't fit; truncate 
+  local prompt_pwd_size=$(( COLUMNS - 5 ))
+  prompt_line_1="$prompt_gfx_tbox$prompt_l_paren%{$fg_bold[$prompt_jtp_color2]%}%$prompt_pwd_size<...<%~%<<$prompt_r_paren%{$fg_no_bold[$prompt_jtp_color1]$prompt_gfx_hyphen%}"
+}
+
+prompt_jtp_preexec () {
+  print -n "$reset_color"
+}
+
+prompt_jtp_setup "$@"

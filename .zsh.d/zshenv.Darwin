@@ -1,0 +1,27 @@
+MACHINENAME=`hostname`
+export ARCH=`uname -m`
+
+#export BASEDIR=$HOME
+
+#export PATH=$HOME/bin:$HOME/bin/$ARCH:/usr/local/git/bin:$PATH:$BASEDIR/bin:$BASEDIR/$ARCH/bin:/u/vilar/src/smallTools/:.
+#export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$BASEDIR/$ARCH/lib
+
+#export RZ=fv016vt@cluster-linux64.rz.rwth-aachen.de
+
+#export CVSCENTRAL=:pserver:vilar@raid4:/u/standard/CVS
+#export CVSLOCAL=$HOME/cvs
+#export CVSROOT=$CVSCENTRAL
+
+#export CCACHE_DIR=/u/ccache
+export WORDCHARS='*?_-[]~=&;!#$%^(){}<>'
+
+
+##################################
+#### PATHES ######################
+MYPATH=$HOME/local/bin
+MYPATH=${MYPATH}:/opt/local/bin
+MYPATH=${MYPATH}:/opt/local/sbin
+MYPATH=${MYPATH}:$HOME/Applications
+PATH=${MYPATH}:${PATH}
+export PATH      
+

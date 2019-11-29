@@ -16,6 +16,8 @@
 # Zsh
 !.zshrc
 !.zsh
+!.zsh.d
+!.zsh.d/*
 !.zsh/*
 !.zsh/contrib
 !.zsh/contrib/*

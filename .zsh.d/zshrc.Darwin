@@ -1,0 +1,18 @@
+###Mac settings
+
+### EXPORTS
+
+export EDITOR='/opt/local/bin/mvim -f'
+export SVN_EDITOR='/opt/local/bin/mvim -f'
+export VISUAL=$EDITOR
+
+
+###ALIAS
+
+alias top="top -o cpu"
+alias gvim='mvim'
+alias f='open -a Finder'
+
+alias p='afplay ~/.zsh.d/claves.wav' #play sound
+
+#alias mplayer='/Applications/MPlayer\ OSX.app/Contents/MacOS/MPlayer\ OSX'
